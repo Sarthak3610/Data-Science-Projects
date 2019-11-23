@@ -1,0 +1,96 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+dfx = pd.read_csv('Logistic_X_Train.csv')
+dfy = pd.read_csv('Logistic_Y_Train.csv')
+dfz = pd.read_csv('Logistic_X_Test.csv')
+x_train = dfx.values
+y_train = dfy.values.reshape((-1))
+x_test = dfz.values
+print(x_train.shape)
+print(y_train.shape)
+print(x_test.shape)
+
+def hypothesis(x, theta, b):
+    h = np.dot(x,theta) + b
+    return sigmoid(h)
+
+def sigmoid(z):
+    return 1.0/(1.0 + np.exp(-1.0*z))
+
+def error(y_true, x, w, b):
+    m = x.shape[0]
+    err = 0.0
+    for i in range(m):
+        hx = hypothesis(x[i], w, b)
+        err += y_true[i]*np.log2(hx) + ((1-y_true[i])*np.log2(1-hx))
+    return (-err/m)
+
+def get_grad(y_true, x, w, b):
+    grad_w = np.zeros(w.shape)
+    grad_b = 0.0
+    m = x.shape[0]
+    for i in range(m):
+        hx = hypothesis(x[i], w, b)
+        grad_w += -1*(y_true[i] - hx)*x[i]
+        grad_b += -1*(y_true[i] - hx)
+    grad_w /= m
+    grad_b /= m
+    return[grad_w, grad_b]
+
+def grad_descent(x, y_true, w, b, lr = 0.1):
+    err = error(y_true, x, w, b)
+    [grad_w, grad_b] = get_grad(y_true, x, w, b)
+    w = w + lr*grad_w
+    b = b + lr*grad_b
+    return err, w, b
+
+def predict(x, w, b):
+    confidence = hypothesis(x, w, b)
+    if confidence < 0.5:
+        return 0 
+    else:
+        return 1
+#def get_acc(x_tst, y_test, w, b):
+#    y_pred = []
+#    for i in range(y_test.shape[0]):
+#        p = predict(x_tst[i], w, b)
+#        y_pred.append(p)
+#    y_pred = np.array(y_pred)
+#    return float(((y_pred == y_test)).sum()/y_test.shape[0])
+
+loss = []
+w = np.random.randn(x_train.shape[1], )
+b = np.random.random()
+for i in range(100):
+    l, w, b = grad_descent(x_train, y_train, w, b, lr = 0.5)
+    loss.append(l)
+print(np.array(loss))
+
+w = np.random.randn(x_train.shape[1], )
+b = np.random.random()
+pred = predict(x_test[15], w, b)
+print(pred)
+
+w = np.random.randn(x_train.shape[1], )
+b = np.random.random()
+arr = []
+m = x_test.shape[0]
+for i in range(m):
+    pred = predict(x_test[i], w, b)
+    arr.append(pred)
+print(arr)
+
+df = pd.DataFrame(arr)
+df.columns = ['y']
+df.to_csv('submission_chemical_classifier.csv', encoding = 'utf-8', index = False)
+
+from sklearn.linear_model import LogisticRegression
+lr = LogisticRegression()
+lr.fit(x_train, y_train)
+pred = lr.predict(x_test)
+arr = np.array(pred)
+df = pd.DataFrame(arr)
+df.columns = ['y']
+df.to_csv('submission_chemical_classifier.csv', encoding = 'utf-8', index = False)

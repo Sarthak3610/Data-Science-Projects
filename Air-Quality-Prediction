@@ -1,0 +1,29 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+dfx = pd.read_csv('Train.csv')
+dfy = pd.read_csv('Test.csv')
+X = dfx.values
+X_train = X[:, :-1]
+u = X.mean()
+std = X.std()
+x = (X-u)/std
+y_train = X[:, -1]
+x_test = dfy.values
+print(x_test.shape)
+print(x_train.shape)
+print(y_train.shape)
+
+lr = LinearRegression(normalize = True)
+print(lr)
+lr.fit(x_train, y_train)
+print(lr.coef_)
+print(lr.intercept_)
+
+arr = np.array(y_test)
+print(arr)
+df = pd.DataFrame(arr)
+df.columns = ['y']
+df.to_csv('submission_air_pollution.csv')
